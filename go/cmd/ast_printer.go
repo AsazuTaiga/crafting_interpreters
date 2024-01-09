@@ -2,6 +2,9 @@ package main
 
 import (
 	"github.com/AsazuTaiga/crafting_interpriters/go/ast"
+	"github.com/AsazuTaiga/crafting_interpriters/go/logger"
+	"github.com/AsazuTaiga/crafting_interpriters/go/parser"
+	"github.com/AsazuTaiga/crafting_interpriters/go/scanner"
 	"github.com/AsazuTaiga/crafting_interpriters/go/token"
 )
 
@@ -69,4 +72,10 @@ func main() {
 
 	printer := AstPrinter{}
 	println(printer.Print(&expression))
+
+	s := scanner.NewScanner("1 + 2")
+	tokens := s.ScanTokens(logger.NewLogger())
+	p := parser.NewParser(tokens)
+	exp := p.Parse()
+	println(printer.Print(exp))
 }
