@@ -78,3 +78,16 @@ func (expr *UnaryExpr) Accept(visitor Visitor) interface{} {
 }
 
 
+type VariableExpr struct {
+	Name token.Token
+}
+
+func NewVariableExpr(name token.Token) *VariableExpr {
+	return &VariableExpr{
+		Name: name,
+	}
+}
+
+func (expr *VariableExpr) Accept(visitor Visitor) interface{} {
+	return visitor.VisitVariableExpr(*expr)
+}

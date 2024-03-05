@@ -3,6 +3,7 @@ package parser
 import (
 	"github.com/AsazuTaiga/crafting_interpriters/go/ast"
 	"github.com/AsazuTaiga/crafting_interpriters/go/logger"
+	"github.com/AsazuTaiga/crafting_interpriters/go/stmt"
 
 	"github.com/AsazuTaiga/crafting_interpriters/go/token"
 )
@@ -19,12 +20,60 @@ func NewParser(tokens []*token.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() ast.Expr {
-	return p.expression()
+func (p *Parser) Parse() []stmt.Stmt {
+	var statements []stmt.Stmt
+	for !p.isAtEnd() {
+		statements = append(statements, p.declaration())
+	}
+	return statements
+}
+
+func (p *Parser) declaration() stmt.Stmt {
+	if(p.match(token.VAR)) {
+		return p.varDeclaration()
+	}
+	return p.statement()
+}
+
+func (p *Parser) varDeclaration() stmt.Stmt {
+	name := p.consume(token.IDENTIFIER, "Expect variable name.")
+	var initializer ast.Expr
+	if p.match(token.EQUAL) {
+		initializer = p.expression()
+	}
+
+	p.consume(token.SEMICOLON, "Expect ';' after variavle declaration.")
+	return &stmt.Var{
+		Name: *name,
+		Initializer: initializer,
+	}
 }
 
 func (p *Parser) expression() ast.Expr {
 	return p.equality()
+}
+
+func (p *Parser) statement() stmt.Stmt {
+	if p.match(token.PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() stmt.Stmt {
+	value := p.expression()
+	p.consume(token.SEMICOLON, "Expect ';' after value.")
+	return &stmt.Print{
+		Expression: value,
+	}
+}
+
+func (p *Parser) expressionStatement() stmt.Stmt {
+	value := p.expression()
+	p.consume(token.SEMICOLON, "Expect ';' after value.")
+	return &stmt.Expression{
+		Expression: value,
+	}
 }
 
 func (p *Parser) equality() ast.Expr {
@@ -113,6 +162,10 @@ func (p *Parser) primary() ast.Expr {
 
 	if p.match(token.NUMBER, token.STRING) {
 		return ast.NewLiteralExpr(p.previous().Literal)
+	}
+
+	if p.match(token.IDENTIFIER) {
+		return ast.NewVariableExpr(*p.previous())
 	}
 
 	if p.match(token.LEFT_PAREN) {
