@@ -25,6 +25,9 @@
 			"settings": {
 				"github.copilot.enable": {
 					"*": false, // Disable GitHub Copilot because this repo is for educational purposes
+				},
+				"files.exclude": {
+					"**/*.class": true
 				}
 			}
 		}
